@@ -411,7 +411,7 @@ const fechaInp=document.querySelector('[data-k="fecha"]');
 if(!fechaInp.value){const h=new Date();fechaInp.value=h.getFullYear()+"-"+String(h.getMonth()+1).padStart(2,"0")+"-"+String(h.getDate()).padStart(2,"0");S.datos.fecha=fechaInp.value}
 Object.keys(S.notas).forEach(k=>{if(document.getElementById("it-"+k))pintarItem(k)});
 calcular();
-document.getElementById("toEnd").addEventListener("click",()=>document.getElementById("firmas").scrollIntoView());
+document.getElementById("toEnd").addEventListener("click",()=>document.getElementById("gen").click());
 
 // ---------- Generar y entregar ----------
 const downloadsP=(window.claude&&window.claude.use)?window.claude.use("downloads").catch(()=>null):Promise.resolve(null);
@@ -460,29 +460,22 @@ document.getElementById("gen").addEventListener("click",async()=>{
 });
 
 async function entregar(blob,nombre){
-  const dl=await downloadsP;
-  if(dl){
-    try{await dl.save({filename:nombre,data:blob});aviso("PDF listo: "+nombre+". Fírmenlo con el certificado digital y envíenlo al residente.");return}
-    catch(e){
-      if(e&&e.code==="declined"){aviso("Descarga cancelada.",true);return}
-      if(e&&e.code==="rate_limited"){aviso("Ya hay una descarga pendiente de confirmar.",true);return}
-    }
-  }
-  const file=new File([blob],nombre,{type:"application/pdf"});
-  if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file],title:nombre});aviso("PDF compartido.");return}
-    catch(e){if(e&&e.name==="AbortError"){aviso("Envío cancelado.",true);return}}
-  }
   const url=URL.createObjectURL(blob), a=document.createElement("a");
-  a.href=url;a.download=nombre;document.body.appendChild(a);a.click();a.remove();
+  a.href=url;
+  a.download=nombre;
+  a.style.display="none";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),30000);
-  aviso("PDF descargado: "+nombre+".");
+  aviso("PDF preparado para descargar: "+nombre+". Comprueba la carpeta Descargas del navegador.");
 }
 
 document.getElementById("reset").addEventListener("click",()=>{
-  if(!confirm("Se borrarán las notas, los comentarios y las firmas de esta evaluación. ¿Continuar?")) return;
-  const keep={unidad:S.datos.unidad,centro:S.datos.centro,evaluador:S.datos.evaluador};
-  S={datos:keep,notas:{},opt:{D:false,E:false,F:false}}; guardar(); location.reload();
+  if(!confirm("Se borrarán todos los datos de esta evaluación, incluidos unidad, centro y evaluador/a. ¿Continuar?")) return;
+  try{localStorage.removeItem(KEY);}catch(e){}
+  S={datos:{especialidad:"EIR Pediatría",tipo:"Sesión clínica con rúbrica",centro:"Hospital Universitario de Canarias"},notas:{},opt:{D:false,E:false,F:false}};
+  location.reload();
 });
 </script>
 </body>
