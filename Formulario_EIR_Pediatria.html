@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Evaluación de sesión clínica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f6f8; --paper:#ffffff; --ink:#18252f; --muted:#5a6a76; --line:#d5dee5;
+  --accent:#1c5a86; --accent-ink:#ffffff; --soft:#e7eff5;
+  --b1:#b3403a; --b2:#b7791b; --b3:#2f7a55; --b4:#1c5a86;
+  --b1s:#f7e3e1; --b2s:#f8ecd6; --b3s:#e0f0e7; --b4s:#dde9f3;
+  --warn:#b3403a;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#10181e; --paper:#18232b; --ink:#e6edf2; --muted:#9aabb8; --line:#2c3a45;
+    --accent:#6fb0de; --accent-ink:#0d1a24; --soft:#1f2e39;
+    --b1:#e57a72; --b2:#e0a94d; --b3:#6cc195; --b4:#6fb0de;
+    --b1s:#3a2220; --b2s:#3a2f1c; --b3s:#1b3528; --b4s:#1b2f40; --warn:#e57a72;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10181e; --paper:#18232b; --ink:#e6edf2; --muted:#9aabb8; --line:#2c3a45;
+  --accent:#6fb0de; --accent-ink:#0d1a24; --soft:#1f2e39;
+  --b1:#e57a72; --b2:#e0a94d; --b3:#6cc195; --b4:#6fb0de;
+  --b1s:#3a2220; --b2s:#3a2f1c; --b3s:#1b3528; --b4s:#1b2f40; --warn:#e57a72;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.45}
+main{max-width:760px;margin:0 auto;padding:20px 16px 130px}
+header.top h1{font-size:1.6rem;line-height:1.15;margin:8px 0 4px}
+header.top p{margin:0;color:var(--muted);font-size:.95rem}
+section.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px 16px;margin-top:18px}
+h2{font-size:1.2rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.9rem;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid .full{grid-column:1/-1}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted)}
+input[type=text],input[type=date],select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 11px;width:100%}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.area-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.media{font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent);white-space:nowrap}
+.media small{font-weight:400;color:var(--muted)}
+.toggle{display:flex;align-items:center;gap:10px;font-size:.95rem;margin:6px 0 4px;cursor:pointer}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.item{border-top:1px solid var(--line);padding:14px 0 12px}
+.item:first-of-type{border-top:0}
+.item.falta{background:linear-gradient(90deg,var(--b1s),transparent 70%);margin:0 -16px;padding-left:16px;padding-right:16px}
+.q{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.q p{margin:0;font-weight:700;font-size:1rem}
+.q .n{color:var(--muted);font-weight:400;margin-right:4px}
+.np{flex:none;font:inherit;font-size:.85rem;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:6px 12px;min-height:36px;cursor:pointer}
+.np[aria-pressed=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.scale{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:10px}
+.scale button{font:inherit;font-weight:700;font-size:1rem;min-height:46px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;padding:0;font-variant-numeric:tabular-nums}
+.scale button[data-b="0"]{border-bottom:3px solid var(--b1)}
+.scale button[data-b="1"]{border-bottom:3px solid var(--b2)}
+.scale button[data-b="2"]{border-bottom:3px solid var(--b3)}
+.scale button[data-b="3"]{border-bottom:3px solid var(--b4)}
+.scale button.on[data-b="0"]{background:var(--b1);border-color:var(--b1);color:#fff}
+.scale button.on[data-b="1"]{background:var(--b2);border-color:var(--b2);color:#fff}
+.scale button.on[data-b="2"]{background:var(--b3);border-color:var(--b3);color:#fff}
+.scale button.on[data-b="3"]{background:var(--b4);border-color:var(--b4);color:#fff}
+.item.isnp .scale{opacity:.3;pointer-events:none}
+.desc{margin:8px 0 0;font-size:.92rem;border-radius:8px;padding:8px 10px;display:none}
+.desc.show{display:block}
+.desc b{display:block;font-size:.82rem}
+.desc[data-b="0"]{background:var(--b1s)} .desc[data-b="0"] b{color:var(--b1)}
+.desc[data-b="1"]{background:var(--b2s)} .desc[data-b="1"] b{color:var(--b2)}
+.desc[data-b="2"]{background:var(--b3s)} .desc[data-b="2"] b{color:var(--b3)}
+.desc[data-b="3"]{background:var(--b4s)} .desc[data-b="3"] b{color:var(--b4)}
+.off .items{display:none}
+.global{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.global .big{font-size:3rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.global .cal{font-size:1.2rem;font-weight:700}
+.bandas{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:12px;font-size:.72rem;text-align:center}
+.bandas span{padding:6px 2px;border-radius:6px;background:var(--bg);color:var(--muted);line-height:1.2}
+.bandas span.on{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.link{font:inherit;font-size:.85rem;background:none;border:0;color:var(--accent);padding:6px 0;cursor:pointer;text-decoration:underline}
+.primary{font:inherit;font-weight:700;font-size:1.05rem;width:100%;min-height:52px;border-radius:12px;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer;margin-top:16px}
+.primary:disabled{opacity:.6}
+.msg{margin:12px 0 0;font-size:.95rem}
+.msg.err{color:var(--warn)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));z-index:5}
+.bar .in{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bar .val{font-variant-numeric:tabular-nums}
+.bar .val strong{font-size:1.35rem}
+.bar .val span{color:var(--muted);font-size:.9rem;margin-left:6px}
+.bar button{font:inherit;font-weight:700;font-size:.95rem;border-radius:10px;border:1px solid var(--accent);background:transparent;color:var(--accent);padding:10px 14px;cursor:pointer}
+.reset{display:block;margin:28px auto 0}
+@media (max-width:520px){
+  .grid{grid-template-columns:1fr}
+  .scale{gap:3px}
+  .scale button{font-size:.95rem}
+}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <h1>Evaluación de sesión clínica</h1>
+    <p>Hospital Universitario de Canarias – EIR Pediatría</p>
+    <p>Servicio Canario de la Salud, Formación Sanitaria Especializada. Rúbrica 1 a 10 por ítem; NP si no procede. Las medias se calculan solas y al final se genera el PDF para firmar con certificado digital.</p>
+  </header>
+
+  <section class="card" id="datos">
+    <h2>Datos de la sesión</h2>
+    <p class="sub">Aparecen en la cabecera del PDF.</p>
+    <div class="grid">
+      <label class="f full">Título de la sesión<input type="text" data-k="titulo" autocomplete="off"></label>
+      <label class="f">Residente ponente<input type="text" data-k="residente" autocomplete="off"></label>
+      <label class="f">Especialidad
+        <select data-k="especialidad"><option selected>EIR Pediatría</option></select>
+      </label>
+      <label class="f">Año de residencia
+        <select data-k="anio"><option value="">Elegir</option><option>R1</option><option>R2</option></select>
+      </label>
+      <label class="f">Tipo de sesión
+        <select data-k="tipo"><option selected>Sesión clínica con rúbrica</option></select>
+      </label>
+      <label class="f">Fecha<input type="date" data-k="fecha"></label>
+      <label class="f">Unidad docente / servicio<input type="text" data-k="unidad" autocomplete="off"></label>
+      <label class="f">Centro<input type="text" data-k="centro" value="Hospital Universitario de Canarias" autocomplete="off"></label>
+      <label class="f full">Evaluador/a<input type="text" data-k="evaluador" autocomplete="name"></label>
+    </div>
+  </section>
+
+  <div id="areas"></div>
+
+  <section class="card" id="resultado">
+    <h2>Puntuación global</h2>
+    <p class="sub">Media de las áreas evaluadas. Los ítems NP no cuentan.</p>
+    <div class="global"><div class="big" id="gNum">–</div><div><div class="cal" id="gCal">Sin puntuar</div><div class="sub" id="gAreas" style="margin:0"></div></div></div>
+    <div class="bandas" id="bandas">
+      <span>Insuficiente<br>1,0–4,9</span><span>Suficiente<br>5,0–6,4</span><span>Bien<br>6,5–7,4</span><span>Notable<br>7,5–8,9</span><span>Excelente<br>9,0–10</span>
+    </div>
+  </section>
+
+  <section class="card" id="feedback">
+    <h2>Feedback formativo</h2>
+    <div class="grid" style="margin-top:10px">
+      <label class="f full">Fortaleza principal<textarea data-k="fortaleza"></textarea></label>
+      <label class="f full">Área prioritaria de mejora<textarea data-k="mejora"></textarea></label>
+      <label class="f full">Recomendación para la próxima sesión<textarea data-k="recomendacion"></textarea></label>
+    </div>
+  </section>
+
+  <section class="card" id="firmas">
+    <h2>Generar PDF y firmar</h2>
+    <p class="sub">Descarguen el PDF y fírmenlo con su certificado digital (por ejemplo, con la app Cliente @firma móvil). Firma primero el evaluador/a y después el residente, sobre el mismo PDF. No modifiquen el archivo después de firmarlo, porque la firma dejaría de ser válida.</p>
+    <button class="primary" id="gen">Generar PDF</button>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    <button class="link reset" id="reset">Empezar una evaluación nueva</button>
+  </section>
+</main>
+
+<div class="bar"><div class="in">
+  <div class="val">Global <strong id="barNum">–</strong><span id="barCal"></span></div>
+  <button id="toEnd">Generar PDF</button>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+// ---------- Rúbrica ----------
+const NIVELES = ["Muy mejorable","Mejorable","Adecuado","Excelente"];
+const RANGOS = ["1–3","4–6","7–8","9–10"];
+const AREAS = [
+ {id:"A",nombre:"Contenido",opcional:false,items:[
+  ["El tema es pertinente y está justificado.",["No se justifica la elección del tema o su pertinencia es escasa.","La justificación es insuficiente o poco contextualizada.","Tema relevante y adecuadamente justificado en el contexto docente.","Tema muy pertinente, bien contextualizado y vinculado a necesidades formativas."]],
+  ["El contenido está actualizado y apoyado en evidencia o bibliografía adecuada.",["Contenido desactualizado, con escaso apoyo bibliográfico.","Actualización parcial; pocas fuentes o calidad poco clara.","Contenido actualizado y apoyado en evidencia adecuada.","Muy actualizado, con fuentes de calidad pertinentes y bien integradas."]],
+  ["La información está bien sintetizada y organizada.",["Información desordenada, excesiva o con selección poco pertinente.","Organización mejorable; síntesis parcial o información secundaria excesiva.","Información bien organizada con síntesis suficiente de los aspectos clave.","Excelente selección, priorización y organización, facilitando la comprensión."]],
+  ["Las conclusiones son claras y aplicables a la práctica.",["Conclusiones ausentes, confusas o no aplicables.","Conclusiones poco concretas o con aplicabilidad limitada.","Conclusiones claras y aplicables a la práctica o al aprendizaje.","Conclusiones muy claras, útiles y directamente transferibles a la práctica."]]]},
+ {id:"B",nombre:"Presentación",opcional:false,items:[
+  ["Las diapositivas o materiales son claros y legibles.",["Materiales confusos, ilegibles o con diseño que dificulta el seguimiento.","Materiales utilizables pero con problemas de legibilidad o exceso de información.","Materiales claros, legibles y adecuados para apoyar la sesión.","Materiales muy claros, visualmente eficaces y facilitadores del aprendizaje."]],
+  ["La exposición es clara y comprensible.",["Exposición confusa, difícil de seguir o con hilo argumental poco reconocible.","Exposición irregular; algunos apartados se comprenden con dificultad.","Exposición clara, ordenada y comprensible para el auditorio.","Exposición muy clara, didáctica y fluida, con excelente hilo conductor."]],
+  ["La comunicación verbal es adecuada al auditorio.",["Lenguaje inadecuado al nivel del auditorio o comunicación poco efectiva.","Lenguaje parcialmente adaptado; ritmo, tono o terminología mejorables.","Lenguaje adecuado, comprensible y ajustado al auditorio.","Comunicación excelente, precisa, dinámica y muy bien adaptada al grupo."]],
+  ["La comunicación no verbal y la presencia profesional son adecuadas.",["Escaso contacto visual, postura o presencia que dificultan la comunicación.","Comunicación no verbal irregular o poco integrada en la exposición.","Presencia profesional adecuada y comunicación no verbal coherente.","Excelente presencia escénica, contacto visual y uso de recursos expresivos."]],
+  ["Demuestra dominio del tema.",["Muestra inseguridad significativa o desconocimiento de aspectos básicos.","Dominio parcial, con dudas relevantes o dificultades para integrar información.","Demuestra seguridad y conocimiento suficiente del tema.","Gran dominio del tema, con integración solvente de conceptos y contexto clínico."]],
+  ["Responde adecuadamente a las preguntas.",["Responde de forma insegura, incompleta o no responde a las cuestiones planteadas.","Respuestas parciales o poco fundamentadas.","Responde de forma adecuada y razonada a las preguntas.","Respuestas completas, fundamentadas y útiles para ampliar el aprendizaje."]],
+  ["Gestiona correctamente el tiempo.",["No se ajusta al tiempo, con omisiones relevantes o exceso claro.","Ajuste irregular; algunas partes quedan descompensadas.","Respeta el tiempo disponible con distribución razonable.","Excelente planificación temporal, ritmo equilibrado y cierre adecuado."]]]},
+ {id:"C",nombre:"Preparación y tutorización",opcional:false,items:[
+  ["La sesión evidencia preparación previa suficiente.",["Preparación insuficiente o improvisada.","Preparación parcial, con lagunas visibles en contenido o estructura.","Preparación adecuada y suficiente para el nivel esperado.","Preparación muy sólida, cuidada y orientada al aprendizaje."]],
+  ["El nivel de complejidad es adecuado al año de residencia.",["Nivel claramente inadecuado para el año de residencia.","Complejidad parcialmente ajustada, con exceso o defecto en algunos aspectos.","Nivel de complejidad adecuado al año y competencias esperadas.","Excelente adecuación al nivel, con reto formativo apropiado y progresivo."]],
+  ["Ha existido una tutorización o supervisión adecuada.",["No consta supervisión o la tutorización es claramente insuficiente.","Tutorización limitada o poco estructurada.","Tutorización adecuada durante la preparación y/o revisión de la sesión.","Tutorización muy adecuada, con acompañamiento activo y feedback previo de calidad."]]]},
+ {id:"D",nombre:"Módulo opcional: caso clínico",opcional:true,tipo:"Caso clínico",items:[
+  ["El caso clínico es relevante y útil para la práctica.",["Caso poco relevante o con utilidad docente limitada.","Caso de interés parcial, con contextualización mejorable.","Caso relevante y útil para la práctica clínica.","Caso muy pertinente, bien seleccionado y con alto valor docente."]],
+  ["El razonamiento diagnóstico está bien fundamentado.",["Razonamiento diagnóstico ausente, desordenado o poco fundamentado.","Razonamiento parcial; diferenciales o justificación insuficientes.","Razonamiento diagnóstico adecuado y fundamentado.","Razonamiento excelente, estructurado, crítico y bien sustentado."]],
+  ["El plan terapéutico está justificado.",["Plan ausente, inapropiado o no justificado.","Plan parcialmente justificado o con lagunas relevantes.","Plan terapéutico adecuado y razonablemente justificado.","Plan muy bien justificado, individualizado y coherente con la evidencia y el contexto."]],
+  ["La discusión integra adecuadamente la evidencia y la práctica.",["Discusión pobre, sin integración entre evidencia y práctica.","Integración parcial o poco crítica.","Integra adecuadamente evidencia, contexto clínico y práctica.","Discusión excelente, crítica, aplicable y con aprendizaje transferible."]]]},
+ {id:"E",nombre:"Módulo opcional: bibliográfica / pregunta clínica",opcional:true,tipo:"Bibliográfica / pregunta clínica",items:[
+  ["La pregunta clínica está bien formulada.",["Pregunta ausente, confusa o no estructurada.","Pregunta parcialmente formulada, con componentes poco precisos.","Pregunta clínica clara y bien planteada.","Pregunta excelente, precisa, relevante y estructurada para guiar la búsqueda."]],
+  ["La estrategia de búsqueda está bien planteada.",["Estrategia ausente, no reproducible o claramente inadecuada.","Estrategia limitada, poco sistemática o con fuentes insuficientes.","Estrategia adecuada y suficientemente descrita.","Estrategia rigurosa, reproducible y coherente con la pregunta clínica."]],
+  ["El análisis crítico de la evidencia es adecuado.",["No realiza análisis crítico o se limita a describir resultados.","Análisis crítico parcial, con escasa valoración de validez/aplicabilidad.","Análisis crítico adecuado de la evidencia seleccionada.","Análisis crítico excelente, equilibrado y orientado a la toma de decisiones."]],
+  ["Las conclusiones son coherentes con la evidencia encontrada.",["Conclusiones no coherentes con la evidencia o no justificadas.","Conclusiones parcialmente coherentes o poco matizadas.","Conclusiones coherentes con la evidencia revisada.","Conclusiones muy coherentes, prudentes, aplicables y bien vinculadas a la evidencia."]]]},
+ {id:"F",nombre:"Módulo opcional: multiprofesional / transversal",opcional:true,tipo:"Multiprofesional / transversal",items:[
+  ["Integra adecuadamente diferentes perspectivas profesionales o asistenciales.",["No integra perspectivas o la visión es claramente unidimensional.","Integración parcial de perspectivas, con escasa conexión entre ellas.","Integra de forma adecuada distintas perspectivas profesionales o asistenciales.","Integración excelente, equilibrada y enriquecedora para el aprendizaje compartido."]],
+  ["Refleja coordinación y coherencia entre participantes, si procede.",["Falta coordinación o hay incoherencias relevantes entre participantes.","Coordinación parcial; transiciones o roles mejorables.","Coordinación adecuada y coherencia suficiente entre participantes.","Coordinación excelente, roles claros y desarrollo integrado de la sesión."]]]}
+];
+
+function banda(v){return v<=3?0:v<=6?1:v<=8?2:3}
+function calificacion(g){return g<5?"Insuficiente":g<6.5?"Suficiente":g<7.5?"Bien":g<9?"Notable":"Excelente"}
+function idxCal(g){return g<5?0:g<6.5?1:g<7.5?2:g<9?3:4}
+function fmt(n,d){return n.toFixed(d).replace(".",",")}
+
+// ---------- PDF-START ----------
+function buildPDF(jsPDF, R){
+  const doc = new jsPDF({unit:"mm",format:"a4"});
+  const W = 210, M = 14, CW = W - 2*M;
+  const azul=[28,90,134], tinta=[24,37,47], gris=[90,106,118], linea=[213,222,229];
+  const colBanda=[[179,64,58],[183,121,27],[47,122,85],[28,90,134]];
+  let y = M;
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(...tinta);
+  doc.text("Hoja de evaluación de sesiones clínicas con rúbrica", M, y+4);
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(...gris);
+  doc.text("Hospital Universitario de Canarias – EIR Pediatría", M, y+9.5);
+  doc.text("Servicio Canario de la Salud. Formación Sanitaria Especializada", M, y+14.5);
+  y += 19;
+
+  const D = R.datos;
+  doc.autoTable({
+    startY:y, margin:{left:M,right:M}, theme:"grid",
+    styles:{font:"helvetica",fontSize:8.5,cellPadding:1.8,textColor:tinta,lineColor:linea,lineWidth:.2},
+    columnStyles:{0:{fontStyle:"bold",textColor:gris,cellWidth:34},2:{fontStyle:"bold",textColor:gris,cellWidth:30}},
+    body:[
+      ["Título de la sesión",{content:D.titulo||"",colSpan:3}],
+      ["Residente ponente",D.residente||"","Especialidad",D.especialidad||""],
+      ["Año de residencia",D.anio||"","Fecha",D.fechaTxt||""],
+      ["Tipo de sesión",{content:D.tipo||"",colSpan:3}],
+      ["Unidad docente / servicio",D.unidad||"","Centro",D.centro||""],
+      ["Evaluador/a",{content:D.evaluador||"",colSpan:3}]
+    ]
+  });
+  y = doc.lastAutoTable.finalY + 6;
+
+  R.areas.forEach(a=>{
+    const body = a.items.map(it=>{
+      if(it.valor==="NP") return [it.n, it.texto, "NP", "No procede", ""];
+      const b = banda(it.valor);
+      return [it.n, it.texto, String(it.valor), NIVELES[b], it.desc[b]];
+    });
+    doc.autoTable({
+      startY:y, margin:{left:M,right:M}, theme:"grid",
+      head:[[{content:a.id+". "+a.nombre,colSpan:5}],["Nº","Ítem","Nota","Nivel","Descriptor de la rúbrica"]],
+      body,
+      foot:[[{content:"Media del área",colSpan:2,styles:{halign:"right"}},{content:a.media==null?"NP":fmt(a.media,2),colSpan:3}]],
+      styles:{font:"helvetica",fontSize:8,cellPadding:1.8,textColor:tinta,lineColor:linea,lineWidth:.2,valign:"middle"},
+      headStyles:{fillColor:azul,textColor:255,fontStyle:"bold"},
+      footStyles:{fillColor:[231,239,245],textColor:tinta,fontStyle:"bold"},
+      columnStyles:{0:{cellWidth:8,halign:"center"},1:{cellWidth:62},2:{cellWidth:12,halign:"center",fontStyle:"bold"},3:{cellWidth:22},4:{cellWidth:"auto",textColor:gris}},
+      didParseCell:(h)=>{
+        if(h.section==="head" && h.row.index===1){h.cell.styles.fillColor=[231,239,245];h.cell.styles.textColor=tinta;h.cell.styles.fontSize=7.5}
+        if(h.section==="body" && h.column.index===3){
+          const v=a.items[h.row.index].valor;
+          if(v!=="NP"){h.cell.styles.textColor=colBanda[banda(v)];h.cell.styles.fontStyle="bold"}
+        }
+      }
+    });
+    y = doc.lastAutoTable.finalY + 5;
+  });
+
+  // Global
+  if(y > 297-M-60){doc.addPage(); y = M;}
+  doc.setDrawColor(...azul); doc.setLineWidth(.6);
+  doc.roundedRect(M, y, CW, 30, 2, 2);
+  doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(...tinta);
+  doc.text("Puntuación global final", M+5, y+7);
+  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...gris);
+  doc.text("Media de las áreas evaluadas (ítems NP excluidos): "+R.areasTxt, M+5, y+12, {maxWidth:CW-60});
+  doc.setFont("helvetica","bold"); doc.setFontSize(26); doc.setTextColor(...azul);
+  doc.text(R.global==null?"–":fmt(R.global,2), W-M-5, y+14, {align:"right"});
+  doc.setFontSize(11); doc.setTextColor(...tinta);
+  doc.text(R.global==null?"":calificacion(R.global), W-M-5, y+21, {align:"right"});
+  const bandas=[["Insuficiente","1,0–4,9"],["Suficiente","5,0–6,4"],["Bien","6,5–7,4"],["Notable","7,5–8,9"],["Excelente","9,0–10"]];
+  const bw=(CW-60)/5, sel = R.global==null?-1:idxCal(R.global);
+  bandas.forEach((b,i)=>{
+    const x=M+5+i*bw;
+    if(i===sel){doc.setFillColor(...azul);doc.rect(x,y+17.5,bw-1,9,"F");doc.setTextColor(255)}
+    else{doc.setFillColor(240,244,247);doc.rect(x,y+17.5,bw-1,9,"F");doc.setTextColor(...gris)}
+    doc.setFont("helvetica",i===sel?"bold":"normal"); doc.setFontSize(7);
+    doc.text(b[0], x+(bw-1)/2, y+21.3, {align:"center"});
+    doc.text(b[1], x+(bw-1)/2, y+24.8, {align:"center"});
+  });
+  y += 36;
+
+  doc.autoTable({
+    startY:y, margin:{left:M,right:M}, theme:"grid",
+    head:[[{content:"Feedback formativo",colSpan:2}]],
+    body:[["Fortaleza principal",R.fb.fortaleza||""],["Área prioritaria de mejora",R.fb.mejora||""],["Recomendación para la próxima sesión",R.fb.recomendacion||""]],
+    styles:{font:"helvetica",fontSize:8.5,cellPadding:2.2,textColor:tinta,lineColor:linea,lineWidth:.2,minCellHeight:12},
+    headStyles:{fillColor:azul,textColor:255,minCellHeight:0},
+    columnStyles:{0:{cellWidth:44,fontStyle:"bold",textColor:gris}}
+  });
+  y = doc.lastAutoTable.finalY + 6;
+
+  // Firmas
+  if(y > 297-M-45){doc.addPage(); y = M;}
+  const fw=(CW-8)/2;
+  [["Firma digital del evaluador/a",D.evaluador],["Firma digital del residente",D.residente]].forEach((f,i)=>{
+    const x=M+i*(fw+8);
+    doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(...gris);
+    doc.text(f[0], x, y+3);
+    doc.setDrawColor(...linea); doc.setLineWidth(.3); doc.rect(x, y+5, fw, 30);
+    doc.setFont("helvetica","normal"); doc.setTextColor(...tinta);
+    doc.text(f[1]||"", x, y+39);
+  });
+
+  const n = doc.getNumberOfPages();
+  for(let p=1;p<=n;p++){
+    doc.setPage(p); doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(...gris);
+    doc.text("Generado el "+R.generado, M, 297-7);
+    doc.text("Página "+p+" de "+n, W-M, 297-7, {align:"right"});
+  }
+  return doc;
+}
+// ---------- PDF-END ----------
+
+// ---------- Estado ----------
+const KEY="eval-sesion-clinica-eir-pediatria-v2";
+let S = {datos:{especialidad:"EIR Pediatría",tipo:"Sesión clínica con rúbrica",centro:"Hospital Universitario de Canarias"}, notas:{}, opt:{D:false,E:false,F:false}};
+try{const g=localStorage.getItem(KEY); if(g) S=Object.assign(S,JSON.parse(g));}catch(e){}
+function guardar(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+// ---------- Render de áreas ----------
+const cont=document.getElementById("areas");
+AREAS.forEach(a=>{
+  const sec=document.createElement("section");
+  sec.className="card"; sec.id="area-"+a.id;
+  let html=`<div class="area-head"><h2>${a.id}. ${a.nombre}</h2><div class="media" id="m-${a.id}">–</div></div>`;
+  if(a.opcional) html+=`<label class="toggle"><input type="checkbox" data-opt="${a.id}"> Evaluar este módulo</label>`;
+  html+=`<div class="items">`;
+  a.items.forEach((it,i)=>{
+    const k=a.id+(i+1);
+    html+=`<div class="item" id="it-${k}"><div class="q"><p><span class="n">${i+1}.</span>${it[0]}</p><button class="np" data-np="${k}" aria-pressed="false">NP</button></div><div class="scale" role="group" aria-label="Puntuación de 1 a 10">`;
+    for(let v=1;v<=10;v++) html+=`<button data-k="${k}" data-v="${v}" data-b="${banda(v)}" aria-pressed="false">${v}</button>`;
+    html+=`</div><p class="desc" id="d-${k}"></p></div>`;
+  });
+  html+=`</div>`;
+  sec.innerHTML=html;
+  cont.appendChild(sec);
+});
+
+function itemDef(k){const a=AREAS.find(x=>x.id===k[0]);return a.items[+k.slice(1)-1]}
+function pintarItem(k){
+  const v=S.notas[k], el=document.getElementById("it-"+k);
+  el.classList.toggle("isnp",v==="NP");
+  el.querySelector(".np").setAttribute("aria-pressed",v==="NP");
+  el.querySelectorAll(".scale button").forEach(b=>{const on=+b.dataset.v===v;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on)});
+  const d=document.getElementById("d-"+k);
+  if(typeof v==="number"){const b=banda(v);d.dataset.b=b;d.innerHTML=`<b>${NIVELES[b]} (${RANGOS[b]})</b>${itemDef(k)[1][b]}`;d.classList.add("show")}
+  else d.classList.remove("show");
+  if(v!=null) el.classList.remove("falta");
+}
+function activa(a){return !a.opcional || S.opt[a.id]}
+function calcular(){
+  const res=[];
+  AREAS.forEach(a=>{
+    const sec=document.getElementById("area-"+a.id);
+    sec.classList.toggle("off",!activa(a));
+    const m=document.getElementById("m-"+a.id);
+    if(!activa(a)){m.innerHTML="<small>No evaluado</small>";return}
+    const vals=a.items.map((_,i)=>S.notas[a.id+(i+1)]).filter(v=>typeof v==="number");
+    if(!vals.length){m.innerHTML="<small>Media</small> –";return}
+    const media=vals.reduce((s,v)=>s+v,0)/vals.length;
+    m.innerHTML="<small>Media</small> "+fmt(media,2);
+    res.push({id:a.id,media});
+  });
+  const g=res.length?res.reduce((s,r)=>s+r.media,0)/res.length:null;
+  document.getElementById("gNum").textContent=g==null?"–":fmt(g,2);
+  document.getElementById("gCal").textContent=g==null?"Sin puntuar":calificacion(g);
+  document.getElementById("gAreas").textContent=res.length?"Áreas incluidas: "+res.map(r=>r.id).join(", "):"";
+  document.getElementById("barNum").textContent=g==null?"–":fmt(g,2);
+  document.getElementById("barCal").textContent=g==null?"":calificacion(g);
+  document.querySelectorAll("#bandas span").forEach((s,i)=>s.classList.toggle("on",g!=null&&idxCal(g)===i));
+  return {res,g};
+}
+
+// ---------- Eventos ----------
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".scale button");
+  if(b){const k=b.dataset.k,v=+b.dataset.v;S.notas[k]=S.notas[k]===v?null:v;pintarItem(k);calcular();guardar();return}
+  const np=e.target.closest("[data-np]");
+  if(np){const k=np.dataset.np;S.notas[k]=S.notas[k]==="NP"?null:"NP";pintarItem(k);calcular();guardar();return}
+});
+document.querySelectorAll("[data-opt]").forEach(c=>{
+  c.checked=!!S.opt[c.dataset.opt];
+  c.addEventListener("change",()=>{S.opt[c.dataset.opt]=c.checked;calcular();guardar()});
+});
+document.querySelectorAll("input[data-k],select[data-k],textarea[data-k]").forEach(inp=>{
+  if(inp.tagName==="BUTTON") return;
+  const k=inp.dataset.k;
+  if(S.datos[k]!=null) inp.value=S.datos[k];
+  inp.addEventListener("input",()=>{
+    S.datos[k]=inp.value;
+    if(k==="tipo"){AREAS.filter(a=>a.opcional).forEach(a=>{if(a.tipo===inp.value){S.opt[a.id]=true;document.querySelector(`[data-opt="${a.id}"]`).checked=true}});calcular()}
+    guardar();
+  });
+});
+const fechaInp=document.querySelector('[data-k="fecha"]');
+if(!fechaInp.value){const h=new Date();fechaInp.value=h.getFullYear()+"-"+String(h.getMonth()+1).padStart(2,"0")+"-"+String(h.getDate()).padStart(2,"0");S.datos.fecha=fechaInp.value}
+Object.keys(S.notas).forEach(k=>{if(document.getElementById("it-"+k))pintarItem(k)});
+calcular();
+document.getElementById("toEnd").addEventListener("click",()=>document.getElementById("firmas").scrollIntoView());
+
+// ---------- Generar y entregar ----------
+const downloadsP=(window.claude&&window.claude.use)?window.claude.use("downloads").catch(()=>null):Promise.resolve(null);
+const msg=document.getElementById("msg");
+function aviso(t,err){msg.textContent=t;msg.className="msg"+(err?" err":"")}
+
+function validar(){
+  const faltan=[];
+  AREAS.filter(activa).forEach(a=>a.items.forEach((_,i)=>{const k=a.id+(i+1);if(S.notas[k]==null){faltan.push(k);document.getElementById("it-"+k).classList.add("falta")}}));
+  const dat=[];
+  if(!S.datos.residente) dat.push("residente");
+  if(!S.datos.evaluador) dat.push("evaluador/a");
+  if(!S.datos.fecha) dat.push("fecha");
+  if(!S.datos.especialidad) dat.push("especialidad");
+  return {faltan,dat};
+}
+
+document.getElementById("gen").addEventListener("click",async()=>{
+  const {faltan,dat}=validar();
+  if(dat.length){aviso("Falta rellenar: "+dat.join(", ")+".",true);document.getElementById("datos").scrollIntoView();return}
+  if(faltan.length){aviso("Quedan "+faltan.length+" ítems sin puntuar. Pónganles nota o márquenlos como NP (están resaltados).",true);document.getElementById("it-"+faltan[0]).scrollIntoView({block:"center"});return}
+  if(!window.jspdf){aviso("No se ha podido cargar el generador de PDF. Comprueben la conexión y recarguen la página.",true);return}
+
+  const {res,g}=calcular();
+  const f=S.datos.fecha.split("-");
+  const areas=AREAS.filter(activa).map(a=>{
+    const r=res.find(x=>x.id===a.id);
+    return {id:a.id,nombre:a.nombre,media:r?r.media:null,items:a.items.map((it,i)=>({n:i+1,texto:it[0],desc:it[1],valor:S.notas[a.id+(i+1)]}))};
+  });
+  const ahora=new Date();
+  const R={
+    datos:Object.assign({},S.datos,{fechaTxt:f[2]+"/"+f[1]+"/"+f[0]}),
+    areas, global:g, areasTxt:res.length?res.map(r=>r.id).join(", "):"ninguna",
+    fb:{fortaleza:S.datos.fortaleza,mejora:S.datos.mejora,recomendacion:S.datos.recomendacion},
+    generado:ahora.toLocaleDateString("es-ES")+" a las "+ahora.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})
+  };
+  const btn=document.getElementById("gen"); btn.disabled=true; aviso("Generando PDF…");
+  try{
+    const doc=buildPDF(window.jspdf.jsPDF,R);
+    const blob=doc.output("blob");
+    const limpio=s=>(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\w]+/g,"_").replace(/^_|_$/g,"");
+    const nombre="Evaluacion_sesion_"+(limpio(S.datos.residente)||"residente")+"_"+S.datos.fecha+".pdf";
+    await entregar(blob,nombre);
+  }catch(e){aviso("No se pudo generar el PDF: "+(e&&e.message||e),true)}
+  btn.disabled=false;
+});
+
+async function entregar(blob,nombre){
+  const dl=await downloadsP;
+  if(dl){
+    try{await dl.save({filename:nombre,data:blob});aviso("PDF listo: "+nombre+". Fírmenlo con el certificado digital y envíenlo al residente.");return}
+    catch(e){
+      if(e&&e.code==="declined"){aviso("Descarga cancelada.",true);return}
+      if(e&&e.code==="rate_limited"){aviso("Ya hay una descarga pendiente de confirmar.",true);return}
+    }
+  }
+  const file=new File([blob],nombre,{type:"application/pdf"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:nombre});aviso("PDF compartido.");return}
+    catch(e){if(e&&e.name==="AbortError"){aviso("Envío cancelado.",true);return}}
+  }
+  const url=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=url;a.download=nombre;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),30000);
+  aviso("PDF descargado: "+nombre+".");
+}
+
+document.getElementById("reset").addEventListener("click",()=>{
+  if(!confirm("Se borrarán las notas, los comentarios y las firmas de esta evaluación. ¿Continuar?")) return;
+  const keep={unidad:S.datos.unidad,centro:S.datos.centro,evaluador:S.datos.evaluador};
+  S={datos:keep,notas:{},opt:{D:false,E:false,F:false}}; guardar(); location.reload();
+});
+</script>
+</body>
+</html>
